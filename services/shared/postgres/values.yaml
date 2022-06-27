@@ -1,0 +1,5 @@
+# define default database user, name, and password for PostgreSQL deployment
+auth:
+  postgresUsername: "root"
+  postgresPassword: "StrongPassword"
+  database: "postgres"

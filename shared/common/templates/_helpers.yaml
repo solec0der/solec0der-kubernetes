@@ -1,0 +1,133 @@
+-{{- define "common.name" -}}
+{{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create a default fully qualified app name.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "common.fullname" -}}
+{{- if .Values.fullnameOverride -}}
+{{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- $name := default .Chart.Name .Values.nameOverride -}}
+{{- if contains $name .Release.Name -}}
+{{- .Release.Name | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s" .Release.Name $name | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "common.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+The common metadata used in all the charts
+*/}}
+{{- define "common.metadata" -}}
+metadata:
+  name: {{ template "common.name" . }}
+  {{ include "common.labels" . }}
+{{- end -}}
+
+{{- define "service.metadata" -}}
+metadata:
+  name: {{ template "common.name" . }}
+  {{ include "common.labels" . }}
+{{- end -}}
+
+{{- define "common.selectorLabels" -}}
+app: {{ template "common.name" . }}
+release: {{ .Release.Name }}
+{{- end -}}
+
+{{- define "common.labels" -}}
+  labels:
+    app.kubernetes.io/name: {{ template "common.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app: {{ template "common.name" . }}
+    chart: {{ template "common.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+    {{- range $key, $val := .Values.labels }}
+    {{ $key }}: {{ $val }}
+    {{- end}}
+{{- end -}}
+
+{{- define "common.image.tag" -}}
+  {{- $global := default dict .Values.global -}}
+  {{- $image := default .Values.image $global.image -}}
+  {{- $tag := default .Values.image.tag $image.tag -}}
+  {{- printf "%s" $tag -}}{{- end -}}
+
+{{- define "common.image" -}}
+  {{- $global := default dict .Values.global -}}
+  {{- $image := default .Values.image $global.image -}}
+  {{- $repo := default .Values.image.repository $image.repository -}}
+  {{- $imgname := default .Values.maven_module | replace "_" "-" -}}
+  {{- $tag := default .Values.image.tag $image.tag -}}
+  {{- printf "%s/%s:%s" $repo $imgname $tag -}}
+{{- end -}}
+
+{{- define "common.ingressname" -}}
+  {{- $global := default .Values .Values.global -}}
+  {{- $hostname := default .Values.ingress.hosts .Values.ingress.hostname -}}
+  {{- $useCINamings := default "" $global.useCINamings -}}
+  {{- if and .Values.ingress.hostname $useCINamings -}}
+    {{- printf "%s-%s.%s" .Release.Name $hostname $global.clusterDomain -}}
+  {{- else if .Values.ingress.hostname -}}
+    {{- printf "%s.%s" $hostname $global.clusterDomain -}}
+  {{- else -}}
+    {{- printf "%s-%s.%s" .Release.Name .Chart.Name $global.clusterDomain -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "use-https" -}}
+  {{- $global := default dict .Values.global -}}
+  {{- $secureCommunication := default dict $global.secureCommunication -}}
+  {{- $useHttps := default false $secureCommunication.enabled -}}
+  {{- if .Values.forceHttp -}}
+    {{- print "false" -}}
+  {{- else if eq (print $useHttps) "nil" -}}
+    {{- print .Values.useHttps -}}
+  {{- else -}}
+    {{- print $useHttps -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "protocol" -}}
+  {{- $useHttps := eq (include "use-https" .) "true" }}
+  {{- if $useHttps -}}
+    {{- print "https" -}}
+  {{- else -}}
+    {{- print "http" -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "protocol-port" -}}
+  {{- $useHttps := eq (include "use-https" .) "true" }}
+  {{- if $useHttps -}}
+    {{- print "8443" -}}
+  {{- else -}}
+    {{- default (print "8080") .Values.service.port -}}
+  {{- end -}}
+{{- end -}}
+
+{{- define "prefix-name" -}}
+  {{- $global := default dict .Values.global -}}
+  {{- $useCINamings := default false $global.useCINamings -}}
+  {{- $releaseName := trunc 14 .Release.Name }}
+  {{- $cloud_services := default dict .Values.cloud_services }}
+  {{- $prefixName := default .Release.Name $cloud_services.gcsObjectPrefix -}}
+  {{- if eq $useCINamings true -}}
+    {{- printf "%s-%s" $releaseName $prefixName -}}
+  {{- else -}}
+    {{- print $prefixName -}}
+{{- end -}}
+{{- end -}}
