@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  replicas: {{ .Values.global.replicas }}
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      serviceAccount: keycloak-kubeping-service-account
+      serviceAccountName: keycloak-kubeping-service-account
+      containers:
+        - name: keycloak
+          image: jboss/keycloak:16.1.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: KEYCLOAK_USER
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secrets
+                  key: keycloak-username
+            - name: KEYCLOAK_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-secrets
+                  key: keycloak-password
+            - name: DB_VENDOR
+              value: postgres
+            - name: DB_ADDR
+              value: pgpool
+            - name: DB_DATABASE
+              value: postgres
+            - name: DB_SCHEMA
+              value: keycloak
+            - name: DB_USER
+              value: postgres
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secrets
+                  key: postgresql-password
+            - name: PROXY_ADDRESS_FORWARDING
+              value: "true"
+            - name: JGROUPS_DISCOVERY_PROTOCOL
+              value: kubernetes.KUBE_PING
+            - name: JGROUPS_DISCOVERY_PROPERTIES
+              value: dump_requests=false
+            - name: KUBERNETES_NAMESPACE
+              value: ct
+            - name: CACHE_OWNERS
+              value: "{{ .Values.global.replicas }}"
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /auth/realms/master
+              port: 8080
+      initContainers:
+        - name: provision-database
+          image: bitnami/postgresql:11.12.0-debian-10-r13
+          command: [ "/bin/bash","-c","PGPASSWORD=WbrTpN3g7q psql postgres -h pgpool -U postgres -c \'CREATE SCHEMA IF NOT EXISTS keycloak;\'" ]

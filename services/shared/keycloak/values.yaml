@@ -1,0 +1,6 @@
+global:
+  replicas: 2
+
+keycloak:
+  adminUsername: YWRtaW4=
+  adminPassword: YWRtaW4=

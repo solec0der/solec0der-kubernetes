@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: pgpool-deployment
+  name: pgpool
 spec:
   replicas: 1
   selector:
@@ -24,7 +24,7 @@ spec:
             - name: BITNAMI_DEBUG
               value: "false"
             - name: PGPOOL_BACKEND_NODES
-              value: 0:postgres-sts-0.postgres-headless-svc:5432,1:postgres-sts-1.postgres-headless-svc:5432,2:postgres-sts-2.postgres-headless-svc:5432
+              value: 0:postgres-0.postgres:5432,1:postgres-1.postgres:5432,2:postgres-2.postgres:5432
             - name: PGPOOL_SR_CHECK_USER
               value: "repmgr"
             - name: PGPOOL_SR_CHECK_PASSWORD
