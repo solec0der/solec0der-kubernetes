@@ -1,23 +1,23 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: prometheus-ingress
+  name: uptime-kuma-ingress
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   tls:
-    - hosts:
-        - prometheus.huggler-k8s.tk
-      secretName: promtheus-tls
+  - hosts:
+    - uptime.huggler-k8s.tk
+    secretName: uptime-kuma-tls
   rules:
-    - host: "prometheus.huggler-k8s.tk"
+    - host: "uptime.huggler-k8s.tk"
       http:
         paths:
           - pathType: Prefix
             path: "/"
             backend:
               service:
-                name: prometheus
+                name: uptime-kuma
                 port:
                   number: 8080

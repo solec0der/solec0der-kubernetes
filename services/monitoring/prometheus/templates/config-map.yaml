@@ -156,3 +156,6 @@ data:
         - source_labels: [__meta_kubernetes_service_name]
           action: replace
           target_label: kubernetes_name
+  web.yml: |-
+    basic_auth_users:
+      admin: $2a$04$znsLqArl5e5wXnMHWG4.l.j30RArpmBfHLS2DMiz9vSL3W24BjIca
