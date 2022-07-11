@@ -2,16 +2,9 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: uptime-kuma-ingress
-  annotations:
-    kubernetes.io/ingress.class: nginx
-    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
-  tls:
-  - hosts:
-    - uptime.huggler-k8s.tk
-    secretName: uptime-kuma-tls
   rules:
-    - host: "uptime.huggler-k8s.tk"
+    - host: "uptime.yhu.ch"
       http:
         paths:
           - pathType: Prefix

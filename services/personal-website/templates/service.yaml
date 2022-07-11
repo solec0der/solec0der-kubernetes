@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: personal-website-service
+spec:
+  selector:
+    app: personal-website
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: NodePort

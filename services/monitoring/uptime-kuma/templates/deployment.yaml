@@ -24,4 +24,5 @@ spec:
               name: uptime-kuma-storage
       volumes:
         - name: uptime-kuma-storage
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: uptime-kuma-pv-claim

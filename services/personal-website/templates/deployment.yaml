@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: personal-website
+  labels:
+    app: personal-website
+spec:
+  selector:
+    matchLabels:
+      app: personal-website
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: personal-website
+    spec:
+      containers:
+        - image: wordpress:6.0-apache
+          name: wordpress
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: mysql
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secrets
+                  key: mysql-password
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: wordpress-persistent-storage
+              mountPath: /var/www/html
+            - mountPath: /usr/local/etc/php/conf.d/custom.ini
+              name: personal-website-conf
+              readOnly: false
+              subPath: custom.ini
+      volumes:
+        - name: wordpress-persistent-storage
+          persistentVolumeClaim:
+            claimName: personal-website-pv-claim
+        - name: personal-website-conf
+          configMap:
+            defaultMode: 420
+            name: personal-website-conf
